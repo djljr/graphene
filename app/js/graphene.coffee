@@ -416,7 +416,7 @@ class Graphene.TimeSeriesView extends Backbone.View
     litem_enters.append('svg:rect')
       .attr('width', 5)
       .attr('height', 5)
-      .attr('class', (d,i) -> 'ts-color '+"h-col-#{i+1}")
+      .attr('class', (d,i) -> 'ts-color '+"h-col-#{start+i+1}")
     litem_enters_text = litem_enters.append('svg:text')
       .attr('dx', 10)
       .attr('dy', 6)

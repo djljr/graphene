@@ -8282,7 +8282,7 @@ function Gauge(placeholderName, configuration)
         return "translate(0, " + (i * _this.line_height) + ")";
       }).attr('class', 'l');
       litem_enters.append('svg:rect').attr('width', 5).attr('height', 5).attr('class', function(d, i) {
-        return 'ts-color ' + ("h-col-" + (i + 1));
+        return 'ts-color ' + ("h-col-" + (start + i + 1));
       });
       litem_enters_text = litem_enters.append('svg:text').attr('dx', 10).attr('dy', 6).attr('class', 'ts-text').text(function(d) {
         return _this.label_formatter(d.label);
