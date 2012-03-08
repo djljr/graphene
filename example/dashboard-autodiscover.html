@@ -61,7 +61,7 @@
     <script type="text/javascript">
       $(function(){
         var g = new Graphene;
-        g.discover('http://my.graphite.host.com', 'dev-pollers', function(i, url){ return "#dashboard"; }, function(description){
+        g.discover('http://metrics.corp.natpal.com', 'dev-pollers', function(i, url){ return "#dashboard"; }, function(description){
           g.build(description);
           console.log(description);
         });

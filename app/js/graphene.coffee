@@ -209,7 +209,7 @@ class Graphene.GaugeGadgetView extends Backbone.View
   render: ()=>
     console.log("rendering.")
     data = @model.get('data')
-    datum = if data && data.length > 1 then data[0] else { ymax: @null_value, ymin: @null_value, points: [[@null_value, 0]] }
+    datum = if data && data.length > 0 then data[0] else { ymax: @null_value, ymin: @null_value, points: [[@null_value, 0]] }
 
     @gauge.redraw(@by_type(datum))
 
@@ -290,6 +290,8 @@ class Graphene.TimeSeriesView extends Backbone.View
     @label_formatter = @options.label_formatter || (label) -> label
     @firstrun = true
     @parent = @options.parent || '#parent'
+    @show = @options.show || {min: true, max: true, cur: true}
+    @start_color = @options.start_color || 0
     @null_value = 0
 
     @vis = d3.select(@parent).append("svg")
@@ -298,7 +300,7 @@ class Graphene.TimeSeriesView extends Backbone.View
             .attr("height", @height + (@padding[0]+@padding[2]))
             .append("g")
             .attr("transform", "translate(" + @padding[3] + "," + @padding[0] + ")")
-    @value_format = d3.format(".3s")
+    @value_format = @options.value_format || d3.format(".3s")
 
     @model.bind('change', @render)
     console.log("TS view: #{@width}x#{@height} padding:#{@padding} animate: #{@animate_ms} labels: #{@num_labels}")
@@ -373,8 +375,9 @@ class Graphene.TimeSeriesView extends Backbone.View
       # so enter() exit() semantics are invalid. We will append here, and later just replace (update).
       # To see an idiomatic d3 handling, take a look at the legend fixture.
       #
-      vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class',  (d,i) -> 'line '+"h-col-#{i+1}")
-      vis.selectAll("path.area").data(points).enter().append('path').attr("d", area).attr('class',  (d,i) -> 'area '+"h-col-#{i+1}")
+      start = @start_color
+      vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class',  (d,i) -> 'line '+"h-col-#{start+i+1}")
+      vis.selectAll("path.area").data(points).enter().append('path').attr("d", area).attr('class',  (d,i) -> 'area '+"h-col-#{start+i+1}")
 
       #
       # Title + Legend
@@ -420,15 +423,26 @@ class Graphene.TimeSeriesView extends Backbone.View
       .attr('class', 'ts-text')
       .text((d) => @label_formatter(d.label))
 
-    litem_enters_text.append('svg:tspan')
-        .attr('class', 'min-tag')
-        .attr('dx', 10)
-        .text((d) => @value_format(d.ymin)+"min")
+    dx = 10
+    if @show.cur
+      litem_enters_text.append('svg:tspan')
+        .attr('class', 'value-tag')
+        .attr('dx', dx)
+        .text((d) => @value_format(d.points[d.points.length-1][0]))
+      dx = 2
 
-    litem_enters_text.append('svg:tspan')
-        .attr('class', 'max-tag')
-        .attr('dx', 2)
-        .text((d) => @value_format(d.ymax)+"max")
+    if @show.min
+      litem_enters_text.append('svg:tspan')
+          .attr('class', 'min-tag')
+          .attr('dx', dx)
+          .text((d) => @value_format(d.ymin))
+      dx = 2
+
+    if @show.max
+      litem_enters_text.append('svg:tspan')
+          .attr('class', 'max-tag')
+          .attr('dx', dx)
+          .text((d) => @value_format(d.ymax))
 
 
 

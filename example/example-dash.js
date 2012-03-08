@@ -1,78 +1,69 @@
 (function() {
   var description;
+  var from = 0;
+  var to = 1200;
   description = {
-    "Total Notifications": {
-      source: "http://localhost:4567/",
-      GaugeLabel: {
+      /*
+    "UI Load": {
+      source: "http://metrics.corp.natpal.com/render?target=alias(yodle.YodleLive.ui-3-prod-yodle-com.pageLoadTime.aggregate.all.5MinuteRte,\"ui-3\")&target=alias(yodle.YodleLive.ui-4-prod-yodle-com.pageLoadTime.aggregate.all.5MinuteRate,\"ui-4\")&target=alias(yodle.YodleLive.ui-5.pageLoadTime.aggregate.all.5MinuteRate,\"ui-5\")&target=alias(yodle.YodleLive.nyc-colo-ui6.pageLoadTime.aggregate.all.5MinuteRate,\"ui-6\")&target=alias(yodle.YodleLive.nyc-colo-ui7.pageLoadTime.aggregate.all.5MinuteRate,\"ui-7\")&from=-6hours&vtitle=req/min&title=Prod UI Request Load&fontName=Helvetica&fontSize=18&format=json",
+      TimeSeries: {
         parent: "#hero-one",
-        title: "Notifications Served",
-        type: "max"
+        width: 600,
+        height: 400,
+        num_labels: 5,
+        title: "Prod UI Request Load",
       }
     },
-    "Poll Time": {
-      source: "http://localhost:4567/",
-      GaugeGadget: {
-        parent: "#hero-one",
-        title: "P1"
-      }
+    */
+    'UI-3 Gauge': {
+        source: 'http://metrics.corp.natpal.com/render?target=yodle.YodleLive.ui-3-prod-yodle-com.pageLoadTime.aggregate.all.5MinuteRate&format=json',
+        GaugeGadget: {
+            parent: '#hero-one',
+            title: 'ui-3',
+            from: from,
+            to: to
+        }
     },
-   
-
-    "Total Installs": {
-      source: "http://localhost:4567/",
-      GaugeLabel: {
-        parent: "#hero-three",
-        title: "Clients Installed"
-      }
+    'UI-4 Gauge': {
+        source: 'http://metrics.corp.natpal.com/render?target=yodle.YodleLive.ui-4-prod-yodle-com.pageLoadTime.aggregate.all.5MinuteRate&format=json',
+        GaugeGadget: {
+            parent: '#hero-one',
+            title: 'ui-4',
+            from: from,
+            to: to
+        }
     },
-    "Clients 1": {
-      source: "http://localhost:4567/",
-      GaugeGadget: {
-        parent: "#hero-three",
-        title: "Cl1"
-      }
+    'UI-5 Gauge': {
+        source: 'http://metrics.corp.natpal.com/render?target=yodle.YodleLive.ui-5.pageLoadTime.aggregate.all.5MinuteRate&format=json',
+        GaugeGadget: {
+            parent: '#hero-one',
+            title: 'ui-5',
+            from: from,
+            to: to
+        }
     },
-    "New Message": {
-      source: "http://localhost:4567/",
-      TimeSeries: {
-        parent: '#g1-1'
-      }
+    'UI-6 Gauge': {
+        source: 'http://metrics.corp.natpal.com/render?target=yodle.YodleLive.nyc-colo-ui6.pageLoadTime.aggregate.all.5MinuteRate&format=json',
+        GaugeGadget: {
+            parent: '#hero-one',
+            title: 'ui-6',
+            from: from,
+            to: to
+        }
     },
-    "Feed Poll": {
-      source: "http://localhost:4567/",
-      TimeSeries: {
-        parent: '#g1-2'
-      }
-    },
-    "Topics": {
-      source: "http://localhost:4567/",
-      TimeSeries: {
-        parent: '#g1-3'
-      }
-    },
-    "Queue Push": {
-      source: "http://localhost:4567/",
-      TimeSeries: {
-        parent: '#g2-1'
-      }
-    },
-    "Queue Work": {
-      source: "http://localhost:4567/",
-      TimeSeries: {
-        parent: '#g2-2'
-      }
-    },
-    "Foo Work": {
-      source: "http://localhost:4567/",
-      TimeSeries: {
-        parent: '#g2-3'
-      }
+    'UI-7 Gauge': {
+        source: 'http://metrics.corp.natpal.com/render?target=yodle.YodleLive.nyc-colo-ui7.pageLoadTime.aggregate.all.5MinuteRate&format=json',
+        GaugeGadget: {
+            parent: '#hero-one',
+            title: 'ui-7',
+            from: from,
+            to: to
+        }
     }
   };
 
 
   var g = new Graphene;
-  g.demo();
   g.build(description);
 
 

@@ -668,7 +668,7 @@ a.thumbnail:hover{border-color:#0088cc;-webkit-box-shadow:0 1px 4px rgba(0, 105,
   fill: #ff0099; }
 
 body {
-  background: url(/images/dark_stripes.png);
+  background: #000;
   color: #fff;
   stroke: #fff; }
 
@@ -708,6 +708,10 @@ line.tick {
   fill: none;
   stroke-opacity: 0.3; }
 
+.value-tag {
+  fill: yellow;
+  margin: 0 1em; }
+
 .min-tag {
   fill: red;
   margin: 0 1em; }
@@ -737,6 +741,7 @@ text, tspan {
  * Gauge Gadget
  */
 .ggview {
+  display: inline;
   text-align: center; }
   .ggview .gauge circle.outer {
     fill: #101010;
