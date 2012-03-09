@@ -7,11 +7,15 @@ class Graphene
       console.log "building [#{k}]"
       if @is_demo
         klass = Graphene.DemoTimeSeries
+      else if json[k].model
+        klass = json[k].model.ctor
+        params = json[k].model.params
       else
         klass = Graphene.TimeSeries
 
-      ts = new klass(source: json[k].source)
+      ts = new klass(source: json[k].source, params: params)
       delete json[k].source
+      delete json[k].model
 
       _.each json[k], (opts, view)->
         klass = eval("Graphene.#{view}View")
@@ -141,9 +145,9 @@ class Graphene.TimeSeries extends Graphene.GraphiteModel
   process_data: (js)=>
     data = _.map js, (dp)->
       min = d3.min(dp.datapoints, (d) -> d[0])
-      return null unless min
+      return null unless min?
       max = d3.max(dp.datapoints, (d) -> d[0])
-      return null unless max
+      return null unless max?
 
       _.each dp.datapoints, (d) -> d[1] = new Date(d[1]*1000)
       return {
@@ -154,10 +158,28 @@ class Graphene.TimeSeries extends Graphene.GraphiteModel
       }
     data = _.reject data, (d)-> d == null
     @set(data:data)
+ 
+ 
 
 
+class Graphene.AggregateSeries extends Graphene.TimeSeries
+  defaults:
+    params: {}
+    source: ''
+    data: null
+    ymin: 0
+    ymax: 0
+    refresh_interval: 10000
 
-
+  refresh: ()=>
+    d3.json @get('source'),
+      (js) =>
+        console.log('got initial data')
+        targets = _.uniq _.map js, (dp)=>
+          return @get('params').getTarget(dp.target)
+        d3.json @get('params').getSource(targets), (js2) =>
+          console.log("got final data.")
+          @process_data(js2)
 
 
 class Graphene.GaugeGadgetView extends Backbone.View
@@ -293,6 +315,9 @@ class Graphene.TimeSeriesView extends Backbone.View
     @show = @options.show || {min: true, max: true, cur: true}
     @start_color = @options.start_color || 0
     @null_value = 0
+    @noarea = @options.noarea
+    @nosort = @options.nosort
+    @logscale = @options.logscale
 
     @vis = d3.select(@parent).append("svg")
             .attr("class", "tsview")
@@ -322,14 +347,29 @@ class Graphene.TimeSeriesView extends Backbone.View
     # build dynamic x & y metrics.
     #
     x = d3.time.scale().domain([data[0].points[0][1], data[0].points[data[0].points.length-1][1]]).range([0, @width])
-    y = d3.scale.linear().domain([dmin.ymin, dmax.ymax]).range([@height, 0]).nice()
+
+    if @logscale
+      y = d3.scale.log().domain([dmin.ymin, dmax.ymax]).range([@height, 0]).nice()
+    else
+      y = d3.scale.linear().domain([dmin.ymin, dmax.ymax]).range([@height, 0]).nice()
 
     #
     # build axis
     #
     xtick_sz = if @display_verticals then -@height else 0
     xAxis = d3.svg.axis().scale(x).ticks(4).tickSize(xtick_sz).tickSubdivide(true)
-    yAxis = d3.svg.axis().scale(y).ticks(4).tickSize(-@width).orient("left").tickFormat(d3.format("s"))
+    if @logscale
+      numberFormat = d3.format("s")
+      logFormat = (d) ->
+        log_x = Math.log(d) / Math.log(10) + 1e-6
+        if Math.abs(log_x - Math.floor(log_x)) < 0.7
+          return numberFormat(d)
+        else
+          return ""
+
+      yAxis = d3.svg.axis().scale(y).ticks(4).tickSize(-@width).orient("left").tickFormat(logFormat)
+    else
+      yAxis = d3.svg.axis().scale(y).ticks(4).tickSize(-@width).orient("left").tickFormat(d3.format("s"))
 
     vis = @vis
 
@@ -337,20 +377,23 @@ class Graphene.TimeSeriesView extends Backbone.View
     # build dynamic line & area, note that we're using dynamic x & y.
     #
     line = d3.svg.line().x((d) -> x(d[1])).y((d) -> y(d[0]))
-    area = d3.svg.area().x((d) -> x(d[1])).y0(@height - 1).y1((d) -> y(d[0]))
+    if not @noarea
+      area = d3.svg.area().x((d) -> x(d[1])).y0(@height - 1).y1((d) -> y(d[0]))
 
     #
     # get first X labels
     #
-    order = if(@sort_labels == 'desc') then -1 else 1
+    if not @nosort
+      order = if(@sort_labels == 'desc') then -1 else 1
 
-    data = _.sortBy(data, (d)-> order*d.ymax)
+      data = _.sortBy(data, (d)-> order*d.ymax)
 
     #
     # get raw data points (throw away all of the other blabber
     #
     points = _.map data, (d)-> d.points
 
+    start = @start_color
 
     if @firstrun
       @firstrun = false
@@ -375,7 +418,6 @@ class Graphene.TimeSeriesView extends Backbone.View
       # so enter() exit() semantics are invalid. We will append here, and later just replace (update).
       # To see an idiomatic d3 handling, take a look at the legend fixture.
       #
-      start = @start_color
       vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class',  (d,i) -> 'line '+"h-col-#{start+i+1}")
       vis.selectAll("path.area").data(points).enter().append('path').attr("d", area).attr('class',  (d,i) -> 'area '+"h-col-#{start+i+1}")
 

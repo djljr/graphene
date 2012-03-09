@@ -7792,17 +7792,22 @@ function Gauge(placeholderName, configuration)
     Graphene.prototype.build = function(json) {
       var _this = this;
       return _.each(_.keys(json), function(k) {
-        var klass, ts;
+        var klass, params, ts;
         console.log("building [" + k + "]");
         if (_this.is_demo) {
           klass = Graphene.DemoTimeSeries;
+        } else if (json[k].model) {
+          klass = json[k].model.ctor;
+          params = json[k].model.params;
         } else {
           klass = Graphene.TimeSeries;
         }
         ts = new klass({
-          source: json[k].source
+          source: json[k].source,
+          params: params
         });
         delete json[k].source;
+        delete json[k].model;
         _.each(json[k], function(opts, view) {
           klass = eval("Graphene." + view + "View");
           console.log(_.extend({
@@ -8001,11 +8006,11 @@ function Gauge(placeholderName, configuration)
         min = d3.min(dp.datapoints, function(d) {
           return d[0];
         });
-        if (!min) return null;
+        if (min == null) return null;
         max = d3.max(dp.datapoints, function(d) {
           return d[0];
         });
-        if (!max) return null;
+        if (max == null) return null;
         _.each(dp.datapoints, function(d) {
           return d[1] = new Date(d[1] * 1000);
         });
@@ -8029,6 +8034,43 @@ function Gauge(placeholderName, configuration)
     return TimeSeries;
 
   })(Graphene.GraphiteModel);
+
+  Graphene.AggregateSeries = (function(_super) {
+
+    __extends(AggregateSeries, _super);
+
+    function AggregateSeries() {
+      this.refresh = __bind(this.refresh, this);
+      AggregateSeries.__super__.constructor.apply(this, arguments);
+    }
+
+    AggregateSeries.prototype.defaults = {
+      params: {},
+      source: '',
+      data: null,
+      ymin: 0,
+      ymax: 0,
+      refresh_interval: 10000
+    };
+
+    AggregateSeries.prototype.refresh = function() {
+      var _this = this;
+      return d3.json(this.get('source'), function(js) {
+        var targets;
+        console.log('got initial data');
+        targets = _.uniq(_.map(js, function(dp) {
+          return _this.get('params').getTarget(dp.target);
+        }));
+        return d3.json(_this.get('params').getSource(targets), function(js2) {
+          console.log("got final data.");
+          return _this.process_data(js2);
+        });
+      });
+    };
+
+    return AggregateSeries;
+
+  })(Graphene.TimeSeries);
 
   Graphene.GaugeGadgetView = (function(_super) {
 
@@ -8211,6 +8253,9 @@ function Gauge(placeholderName, configuration)
       };
       this.start_color = this.options.start_color || 0;
       this.null_value = 0;
+      this.noarea = this.options.noarea;
+      this.nosort = this.options.nosort;
+      this.logscale = this.options.logscale;
       this.vis = d3.select(this.parent).append("svg").attr("class", "tsview").attr("width", this.width + (this.padding[1] + this.padding[3])).attr("height", this.height + (this.padding[0] + this.padding[2])).append("g").attr("transform", "translate(" + this.padding[3] + "," + this.padding[0] + ")");
       this.value_format = this.options.value_format || d3.format(".3s");
       this.model.bind('change', this.render);
@@ -8218,7 +8263,7 @@ function Gauge(placeholderName, configuration)
     };
 
     TimeSeriesView.prototype.render = function() {
-      var area, data, dmax, dmin, dx, leg_items, line, litem_enters, litem_enters_text, order, points, start, title, vis, x, xAxis, xtick_sz, y, yAxis,
+      var area, data, dmax, dmin, dx, leg_items, line, litem_enters, litem_enters_text, logFormat, numberFormat, order, points, start, title, vis, x, xAxis, xtick_sz, y, yAxis,
         _this = this;
       console.log("rendering.");
       data = this.model.get('data');
@@ -8236,33 +8281,55 @@ function Gauge(placeholderName, configuration)
         return d.ymin;
       });
       x = d3.time.scale().domain([data[0].points[0][1], data[0].points[data[0].points.length - 1][1]]).range([0, this.width]);
-      y = d3.scale.linear().domain([dmin.ymin, dmax.ymax]).range([this.height, 0]).nice();
+      if (this.logscale) {
+        y = d3.scale.log().domain([dmin.ymin, dmax.ymax]).range([this.height, 0]).nice();
+      } else {
+        y = d3.scale.linear().domain([dmin.ymin, dmax.ymax]).range([this.height, 0]).nice();
+      }
       xtick_sz = this.display_verticals ? -this.height : 0;
       xAxis = d3.svg.axis().scale(x).ticks(4).tickSize(xtick_sz).tickSubdivide(true);
-      yAxis = d3.svg.axis().scale(y).ticks(4).tickSize(-this.width).orient("left").tickFormat(d3.format("s"));
+      if (this.logscale) {
+        numberFormat = d3.format("s");
+        logFormat = function(d) {
+          var log_x;
+          log_x = Math.log(d) / Math.log(10) + 1e-6;
+          if (Math.abs(log_x - Math.floor(log_x)) < 0.7) {
+            return numberFormat(d);
+          } else {
+            return "";
+          }
+        };
+        yAxis = d3.svg.axis().scale(y).ticks(4).tickSize(-this.width).orient("left").tickFormat(logFormat);
+      } else {
+        yAxis = d3.svg.axis().scale(y).ticks(4).tickSize(-this.width).orient("left").tickFormat(d3.format("s"));
+      }
       vis = this.vis;
       line = d3.svg.line().x(function(d) {
         return x(d[1]);
       }).y(function(d) {
         return y(d[0]);
       });
-      area = d3.svg.area().x(function(d) {
-        return x(d[1]);
-      }).y0(this.height - 1).y1(function(d) {
-        return y(d[0]);
-      });
-      order = this.sort_labels === 'desc' ? -1 : 1;
-      data = _.sortBy(data, function(d) {
-        return order * d.ymax;
-      });
+      if (!this.noarea) {
+        area = d3.svg.area().x(function(d) {
+          return x(d[1]);
+        }).y0(this.height - 1).y1(function(d) {
+          return y(d[0]);
+        });
+      }
+      if (!this.nosort) {
+        order = this.sort_labels === 'desc' ? -1 : 1;
+        data = _.sortBy(data, function(d) {
+          return order * d.ymax;
+        });
+      }
       points = _.map(data, function(d) {
         return d.points;
       });
+      start = this.start_color;
       if (this.firstrun) {
         this.firstrun = false;
         vis.append("svg:g").attr("class", "x axis").attr("transform", "translate(0," + this.height + ")").transition().duration(this.animate_ms).call(xAxis);
         vis.append("svg:g").attr("class", "y axis").call(yAxis);
-        start = this.start_color;
         vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class', function(d, i) {
           return 'line ' + ("h-col-" + (start + i + 1));
         });

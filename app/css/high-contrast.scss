@@ -32,6 +32,9 @@ a{
     text-decoration: none;
   }
 }
+.title {
+  font-size:1.5em;
+}
 svg.tsview{
   background: #111;
   box-shadow: 0px 1px 4px 0px #000;
@@ -75,6 +78,7 @@ line.tick {
 .value-tag{
   fill:yellow;
   margin: 0 1em;
+  font-size:1.5em;
 }
 .min-tag{
   fill:red;
