@@ -8252,6 +8252,7 @@ function Gauge(placeholderName, configuration)
         cur: true
       };
       this.start_color = this.options.start_color || 0;
+      this.hicontrast = this.options.hicontrast;
       this.null_value = 0;
       this.noarea = this.options.noarea;
       this.nosort = this.options.nosort;
@@ -8263,7 +8264,7 @@ function Gauge(placeholderName, configuration)
     };
 
     TimeSeriesView.prototype.render = function() {
-      var area, data, dmax, dmin, dx, leg_items, line, litem_enters, litem_enters_text, logFormat, numberFormat, order, points, start, title, vis, x, xAxis, xtick_sz, y, yAxis,
+      var area, color_fn, data, dmax, dmin, dx, leg_items, line, litem_enters, litem_enters_text, logFormat, numberFormat, order, points, start, title, vis, x, xAxis, xtick_sz, y, yAxis,
         _this = this;
       console.log("rendering.");
       data = this.model.get('data');
@@ -8321,20 +8322,29 @@ function Gauge(placeholderName, configuration)
         data = _.sortBy(data, function(d) {
           return order * d.ymax;
         });
+      } else {
+        data.reverse();
       }
       points = _.map(data, function(d) {
         return d.points;
       });
       start = this.start_color;
+      color_fn = function(i) {
+        if (_this.hicontrast) {
+          return _this.start_color + 2 * (i + 1);
+        } else {
+          return _this.start_color + i + 1;
+        }
+      };
       if (this.firstrun) {
         this.firstrun = false;
         vis.append("svg:g").attr("class", "x axis").attr("transform", "translate(0," + this.height + ")").transition().duration(this.animate_ms).call(xAxis);
         vis.append("svg:g").attr("class", "y axis").call(yAxis);
         vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class', function(d, i) {
-          return 'line ' + ("h-col-" + (start + i + 1));
+          return 'line ' + ("h-col-" + (color_fn(i)));
         });
         vis.selectAll("path.area").data(points).enter().append('path').attr("d", area).attr('class', function(d, i) {
-          return 'area ' + ("h-col-" + (start + i + 1));
+          return 'area ' + ("h-col-" + (color_fn(i)));
         });
         if (this.title) {
           title = vis.append('svg:text').attr('class', 'title').attr('transform', "translate(0, -" + this.line_height + ")").text(this.title);
@@ -8349,7 +8359,7 @@ function Gauge(placeholderName, configuration)
         return "translate(0, " + (i * _this.line_height) + ")";
       }).attr('class', 'l');
       litem_enters.append('svg:rect').attr('width', 5).attr('height', 5).attr('class', function(d, i) {
-        return 'ts-color ' + ("h-col-" + (start + i + 1));
+        return 'ts-color ' + ("h-col-" + (color_fn(i)));
       });
       litem_enters_text = litem_enters.append('svg:text').attr('dx', 10).attr('dy', 6).attr('class', 'ts-text').text(function(d) {
         return _this.label_formatter(d.label);

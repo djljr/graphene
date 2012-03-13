@@ -109,7 +109,7 @@ class Graphene.DemoTimeSeries extends Backbone.Model
 
   refresh: ()=>
     # clone data - tricks d3/backbone refs
-    @data = _.map @data, (d)-> 
+    @data = _.map @data, (d)->
       d = _.clone(d)
       d.points = _.map(d.points, (p)-> [p[0], p[1]])
       d
@@ -154,7 +154,7 @@ class Graphene.TimeSeries extends Graphene.GraphiteModel
         points: _.reject(dp.datapoints, (d)-> d[0] == null),
         ymin: min,
         ymax: max,
-        label: dp.target 
+        label: dp.target
       }
     data = _.reject data, (d)-> d == null
     @set(data:data)
@@ -314,6 +314,7 @@ class Graphene.TimeSeriesView extends Backbone.View
     @parent = @options.parent || '#parent'
     @show = @options.show || {min: true, max: true, cur: true}
     @start_color = @options.start_color || 0
+    @hicontrast = @options.hicontrast
     @null_value = 0
     @noarea = @options.noarea
     @nosort = @options.nosort
@@ -385,8 +386,9 @@ class Graphene.TimeSeriesView extends Backbone.View
     #
     if not @nosort
       order = if(@sort_labels == 'desc') then -1 else 1
-
       data = _.sortBy(data, (d)-> order*d.ymax)
+    else
+      data.reverse()
 
     #
     # get raw data points (throw away all of the other blabber
@@ -394,6 +396,11 @@ class Graphene.TimeSeriesView extends Backbone.View
     points = _.map data, (d)-> d.points
 
     start = @start_color
+    color_fn = (i) =>
+      if @hicontrast
+        @start_color + 2 * (i + 1)
+      else
+        @start_color + i + 1
 
     if @firstrun
       @firstrun = false
@@ -418,8 +425,8 @@ class Graphene.TimeSeriesView extends Backbone.View
       # so enter() exit() semantics are invalid. We will append here, and later just replace (update).
       # To see an idiomatic d3 handling, take a look at the legend fixture.
       #
-      vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class',  (d,i) -> 'line '+"h-col-#{start+i+1}")
-      vis.selectAll("path.area").data(points).enter().append('path').attr("d", area).attr('class',  (d,i) -> 'area '+"h-col-#{start+i+1}")
+      vis.selectAll("path.line").data(points).enter().append('path').attr("d", line).attr('class',  (d,i) -> 'line '+"h-col-#{color_fn(i)}")
+      vis.selectAll("path.area").data(points).enter().append('path').attr("d", area).attr('class',  (d,i) -> 'area '+"h-col-#{color_fn(i)}")
 
       #
       # Title + Legend
@@ -458,7 +465,7 @@ class Graphene.TimeSeriesView extends Backbone.View
     litem_enters.append('svg:rect')
       .attr('width', 5)
       .attr('height', 5)
-      .attr('class', (d,i) -> 'ts-color '+"h-col-#{start+i+1}")
+      .attr('class', (d,i) -> 'ts-color '+"h-col-#{color_fn(i)}")
     litem_enters_text = litem_enters.append('svg:text')
       .attr('dx', 10)
       .attr('dy', 6)
@@ -497,20 +504,20 @@ class Graphene.TimeSeriesView extends Backbone.View
     vis.selectAll("path.area")
         .data(points)
         .attr("transform", (d)-> "translate(" + x(d[1][1]) + ")")
-        .attr("d", area) 
-        .transition() 
+        .attr("d", area)
+        .transition()
         .ease("linear")
-        .duration(@animate_ms) 
+        .duration(@animate_ms)
         .attr("transform", (d) -> "translate(" + x(d[0][1]) + ")")
 
 
     vis.selectAll("path.line")
         .data(points)
         .attr("transform", (d)-> "translate(" + x(d[1][1]) + ")")
-        .attr("d", line) 
-        .transition() 
+        .attr("d", line)
+        .transition()
         .ease("linear")
-        .duration(@animate_ms) 
+        .duration(@animate_ms)
         .attr("transform", (d) -> "translate(" + x(d[0][1]) + ")")
 
 

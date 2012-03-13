@@ -3,7 +3,7 @@
 /*
  * Generated high contrast colors. See tools/gencolors.rb
  */
-
+/*
 .h-col-1{ stroke: hsl(0, 100%, 50%); fill: hsl(0, 100%, 50%);}
 .h-col-2{ stroke: hsl(36, 100%, 50%); fill: hsl(36, 100%, 50%);}
 .h-col-3{ stroke: hsl(72, 100%, 50%); fill: hsl(72, 100%, 50%);}
@@ -14,8 +14,23 @@
 .h-col-8{ stroke: hsl(252, 100%, 50%); fill: hsl(252, 100%, 50%);}
 .h-col-9{ stroke: hsl(288, 100%, 50%); fill: hsl(288, 100%, 50%);}
 .h-col-10{ stroke: hsl(324, 100%, 50%); fill: hsl(324, 100%, 50%);}
+*/
 
-
+.h-col-1{ stroke: hsl(0, 100%, 50%); fill: hsl(0, 100%, 50%);}
+.h-col-2{ stroke: hsl(25, 100%, 50%); fill: hsl(25, 100%, 50%);}
+.h-col-3{ stroke: hsl(50, 100%, 50%); fill: hsl(50, 100%, 50%);}
+.h-col-4{ stroke: hsl(75, 100%, 50%); fill: hsl(75, 100%, 50%);}
+.h-col-5{ stroke: hsl(100, 100%, 50%); fill: hsl(100, 100%, 50%);}
+.h-col-6{ stroke: hsl(125, 100%, 50%); fill: hsl(125, 100%, 50%);}
+.h-col-7{ stroke: hsl(150, 100%, 50%); fill: hsl(150, 100%, 50%);}
+.h-col-8{ stroke: hsl(175, 100%, 50%); fill: hsl(175, 100%, 50%);}
+.h-col-9{ stroke: hsl(200, 100%, 50%); fill: hsl(200, 100%, 50%);}
+.h-col-10{ stroke: hsl(225, 100%, 50%); fill: hsl(225, 100%, 50%);}
+.h-col-11{ stroke: hsl(250, 100%, 50%); fill: hsl(250, 100%, 50%);}
+.h-col-12{ stroke: hsl(275, 100%, 50%); fill: hsl(275, 100%, 50%);}
+.h-col-13{ stroke: hsl(300, 100%, 50%); fill: hsl(300, 100%, 50%);}
+.h-col-14{ stroke: hsl(325, 100%, 50%); fill: hsl(325, 100%, 50%);}
+.h-col-15{ stroke: hsl(350, 100%, 50%); fill: hsl(350, 100%, 50%);}
 
 
 
@@ -127,13 +142,13 @@ text, tspan{
   .gauge{
     circle{
       &.outer{
-        fill: #101010;
+        fill: #151515;
         stroke: #000;
         stroke-width: 0.5px;
       }
 
       &.inner{
-        fill: #050505;
+        fill: #111;
         stroke: #000;
         stroke-width: 2px;
       }

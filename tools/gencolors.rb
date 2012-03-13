@@ -15,7 +15,7 @@
 # dashboard.
 #
 
-NUM_COLORS = 10
+NUM_COLORS = 14
 
 interval = 360/NUM_COLORS 
 i=0

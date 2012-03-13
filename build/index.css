@@ -627,45 +627,77 @@ a.thumbnail:hover{border-color:#0088cc;-webkit-box-shadow:0 1px 4px rgba(0, 105,
 /*
  * Generated high contrast colors. See tools/gencolors.rb
  */
+/*
+.h-col-1{ stroke: hsl(0, 100%, 50%); fill: hsl(0, 100%, 50%);}
+.h-col-2{ stroke: hsl(36, 100%, 50%); fill: hsl(36, 100%, 50%);}
+.h-col-3{ stroke: hsl(72, 100%, 50%); fill: hsl(72, 100%, 50%);}
+.h-col-4{ stroke: hsl(108, 100%, 50%); fill: hsl(108, 100%, 50%);}
+.h-col-5{ stroke: hsl(144, 100%, 50%); fill: hsl(144, 100%, 50%);}
+.h-col-6{ stroke: hsl(180, 100%, 50%); fill: hsl(180, 100%, 50%);}
+.h-col-7{ stroke: hsl(216, 100%, 50%); fill: hsl(216, 100%, 50%);}
+.h-col-8{ stroke: hsl(252, 100%, 50%); fill: hsl(252, 100%, 50%);}
+.h-col-9{ stroke: hsl(288, 100%, 50%); fill: hsl(288, 100%, 50%);}
+.h-col-10{ stroke: hsl(324, 100%, 50%); fill: hsl(324, 100%, 50%);}
+*/
 .h-col-1 {
   stroke: red;
   fill: red; }
 
 .h-col-2 {
-  stroke: #ff9900;
-  fill: #ff9900; }
+  stroke: #ff6a00;
+  fill: #ff6a00; }
 
 .h-col-3 {
-  stroke: #ccff00;
-  fill: #ccff00; }
+  stroke: #ffd500;
+  fill: #ffd500; }
 
 .h-col-4 {
-  stroke: #33ff00;
-  fill: #33ff00; }
+  stroke: #bfff00;
+  fill: #bfff00; }
 
 .h-col-5 {
-  stroke: #00ff66;
-  fill: #00ff66; }
+  stroke: #55ff00;
+  fill: #55ff00; }
 
 .h-col-6 {
-  stroke: aqua;
-  fill: aqua; }
+  stroke: #00ff15;
+  fill: #00ff15; }
 
 .h-col-7 {
-  stroke: #0066ff;
-  fill: #0066ff; }
+  stroke: #00ff80;
+  fill: #00ff80; }
 
 .h-col-8 {
-  stroke: #3300ff;
-  fill: #3300ff; }
+  stroke: #00ffea;
+  fill: #00ffea; }
 
 .h-col-9 {
-  stroke: #cc00ff;
-  fill: #cc00ff; }
+  stroke: #00aaff;
+  fill: #00aaff; }
 
 .h-col-10 {
-  stroke: #ff0099;
-  fill: #ff0099; }
+  stroke: #0040ff;
+  fill: #0040ff; }
+
+.h-col-11 {
+  stroke: #2a00ff;
+  fill: #2a00ff; }
+
+.h-col-12 {
+  stroke: #9500ff;
+  fill: #9500ff; }
+
+.h-col-13 {
+  stroke: fuchsia;
+  fill: fuchsia; }
+
+.h-col-14 {
+  stroke: #ff0095;
+  fill: #ff0095; }
+
+.h-col-15 {
+  stroke: #ff002b;
+  fill: #ff002b; }
 
 body {
   background: #000;
@@ -748,11 +780,11 @@ text, tspan {
   display: inline;
   text-align: center; }
   .ggview .gauge circle.outer {
-    fill: #101010;
+    fill: #151515;
     stroke: #000;
     stroke-width: 0.5px; }
   .ggview .gauge circle.inner {
-    fill: #050505;
+    fill: #111;
     stroke: #000;
     stroke-width: 2px; }
   .ggview .gauge circle.pointer-circle {
