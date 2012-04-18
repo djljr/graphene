@@ -774,6 +774,18 @@ text, tspan {
     background: none; }
 
 /*
+ *  Countdown Label
+ */
+.clview {
+  text-align: center;
+  padding-bottom: 4em; }
+  .clview .metric .value {
+    font-size: 6em; }
+  .clview .label {
+    background: none;
+    font-size: 12px; }
+
+/*
  * Gauge Gadget
  */
 .ggview {

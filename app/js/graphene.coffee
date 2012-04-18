@@ -182,6 +182,58 @@ class Graphene.AggregateSeries extends Graphene.TimeSeries
           @process_data(js2)
 
 
+class Graphene.CountdownSeries extends Backbone.Model
+  defaults:
+    source: 0
+    refresh_interval: 1000
+
+  start: ()=>
+    console.log("Starting to generate countdown")
+    @data = [@countdown_time()]
+
+    @t_index = setInterval(@refresh, @get('refresh_interval'))
+
+  stop: ()=>
+    clearInterval(@t_index)
+
+  refresh: ()=>
+    @data = [@countdown_time()]
+    @set(data: @data)
+
+  countdown_time: ()=>
+    # convert times to milliseconds if needed
+    now = +(new Date())
+    event = +@get('source')
+  
+    if event > now
+      return "T-" + @format(now, event)
+    else
+      return "T+" + @format(event, now)
+
+  format: (first, second)=>
+    fmt = (num) ->
+      if num < 10
+        return "0" + num
+      else
+        return num
+
+    diff = (second - first) / 1000
+    seconds = fmt(Math.floor(diff % 60))
+    diff = diff / 60
+    minutes = fmt(Math.floor(diff % 60))
+    diff = diff / 60
+    hours = fmt(Math.floor(diff % 24))
+    diff = diff / 24
+    days = Math.floor(diff)
+
+    formatted = ""
+    if days > 0
+      formatted = days + 'd '
+
+    formatted = formatted + hours + ':' + minutes + ':' + seconds
+    return formatted
+
+
 class Graphene.GaugeGadgetView extends Backbone.View
   model: Graphene.TimeSeries
   className: 'gauge-gadget-view'
@@ -238,6 +290,39 @@ class Graphene.GaugeGadgetView extends Backbone.View
 
 
 
+class Graphene.CountdownLabelView extends Backbone.View
+  model: Graphene.CountdownSeries
+  className: 'countdown-label-view'
+  tagName: 'div'
+  initialize: ()->
+    @parent = @options.parent
+    @title = @options.title
+    
+    @vis = d3.select(@parent).append("div")
+            .attr("class", "clview")
+    if @title
+      @vis.append("div")
+          .attr("class", "label")
+          .text(@title)
+
+    @model.bind('change', @render)
+    console.log("CL view")
+
+  render: ()=>
+    data = @model.get('data')
+    datum = if data && data.length > 0 then data[0] else 'T-0d 0:00:00'
+    vis = @vis
+    metric_items = vis.selectAll('div.metric')
+      .data([datum], (d)->d)
+    metric_items.exit().remove()
+    
+    metric = metric_items.enter()
+      .insert('div', ':first-child')
+      .attr('class', 'metric')
+
+    metric.append('span')
+      .attr('class', 'value')
+      .text((d)->d)
 
 
 class Graphene.GaugeLabelView extends Backbone.View
@@ -249,7 +334,7 @@ class Graphene.GaugeLabelView extends Backbone.View
     @title  = @options.title
     @type   = @options.type
     @parent = @options.parent || '#parent'
-    @value_format  = d3.format(".3s")
+    @value_format  = @options.value_format || d3.format(".3s")
     @null_value = 0
 
     @vis = d3.select(@parent).append("div")

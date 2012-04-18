@@ -131,6 +131,24 @@ text, tspan{
 }
 
 
+/*
+ *  Countdown Label
+ */
+.clview{
+  text-align:center;
+  padding-bottom:4em;
+
+  .metric .value{
+    font-size:6em;
+  }
+
+  .label{
+    background:none;
+    font-size:12px;
+  }
+
+}
+
 
 /*
  * Gauge Gadget

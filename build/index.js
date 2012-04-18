@@ -8072,6 +8072,79 @@ function Gauge(placeholderName, configuration)
 
   })(Graphene.TimeSeries);
 
+  Graphene.CountdownSeries = (function(_super) {
+
+    __extends(CountdownSeries, _super);
+
+    function CountdownSeries() {
+      this.format = __bind(this.format, this);
+      this.countdown_time = __bind(this.countdown_time, this);
+      this.refresh = __bind(this.refresh, this);
+      this.stop = __bind(this.stop, this);
+      this.start = __bind(this.start, this);
+      CountdownSeries.__super__.constructor.apply(this, arguments);
+    }
+
+    CountdownSeries.prototype.defaults = {
+      source: 0,
+      refresh_interval: 1000
+    };
+
+    CountdownSeries.prototype.start = function() {
+      console.log("Starting to generate countdown");
+      this.data = [this.countdown_time()];
+      return this.t_index = setInterval(this.refresh, this.get('refresh_interval'));
+    };
+
+    CountdownSeries.prototype.stop = function() {
+      return clearInterval(this.t_index);
+    };
+
+    CountdownSeries.prototype.refresh = function() {
+      this.data = [this.countdown_time()];
+      return this.set({
+        data: this.data
+      });
+    };
+
+    CountdownSeries.prototype.countdown_time = function() {
+      var event, now;
+      now = +(new Date());
+      event = +this.get('source');
+      if (event > now) {
+        return "T-" + this.format(now, event);
+      } else {
+        return "T+" + this.format(event, now);
+      }
+    };
+
+    CountdownSeries.prototype.format = function(first, second) {
+      var days, diff, fmt, formatted, hours, minutes, seconds;
+      fmt = function(num) {
+        if (num < 10) {
+          return "0" + num;
+        } else {
+          return num;
+        }
+      };
+      diff = (second - first) / 1000;
+      seconds = fmt(Math.floor(diff % 60));
+      diff = diff / 60;
+      minutes = fmt(Math.floor(diff % 60));
+      diff = diff / 60;
+      hours = fmt(Math.floor(diff % 24));
+      diff = diff / 24;
+      days = Math.floor(diff);
+      formatted = "";
+      if (days > 0) formatted = days + 'd ';
+      formatted = formatted + hours + ':' + minutes + ':' + seconds;
+      return formatted;
+    };
+
+    return CountdownSeries;
+
+  })(Backbone.Model);
+
   Graphene.GaugeGadgetView = (function(_super) {
 
     __extends(GaugeGadgetView, _super);
@@ -8148,6 +8221,51 @@ function Gauge(placeholderName, configuration)
 
   })(Backbone.View);
 
+  Graphene.CountdownLabelView = (function(_super) {
+
+    __extends(CountdownLabelView, _super);
+
+    function CountdownLabelView() {
+      this.render = __bind(this.render, this);
+      CountdownLabelView.__super__.constructor.apply(this, arguments);
+    }
+
+    CountdownLabelView.prototype.model = Graphene.CountdownSeries;
+
+    CountdownLabelView.prototype.className = 'countdown-label-view';
+
+    CountdownLabelView.prototype.tagName = 'div';
+
+    CountdownLabelView.prototype.initialize = function() {
+      this.parent = this.options.parent;
+      this.title = this.options.title;
+      this.vis = d3.select(this.parent).append("div").attr("class", "clview");
+      if (this.title) {
+        this.vis.append("div").attr("class", "label").text(this.title);
+      }
+      this.model.bind('change', this.render);
+      return console.log("CL view");
+    };
+
+    CountdownLabelView.prototype.render = function() {
+      var data, datum, metric, metric_items, vis;
+      data = this.model.get('data');
+      datum = data && data.length > 0 ? data[0] : 'T-0d 0:00:00';
+      vis = this.vis;
+      metric_items = vis.selectAll('div.metric').data([datum], function(d) {
+        return d;
+      });
+      metric_items.exit().remove();
+      metric = metric_items.enter().insert('div', ':first-child').attr('class', 'metric');
+      return metric.append('span').attr('class', 'value').text(function(d) {
+        return d;
+      });
+    };
+
+    return CountdownLabelView;
+
+  })(Backbone.View);
+
   Graphene.GaugeLabelView = (function(_super) {
 
     __extends(GaugeLabelView, _super);
@@ -8169,7 +8287,7 @@ function Gauge(placeholderName, configuration)
       this.title = this.options.title;
       this.type = this.options.type;
       this.parent = this.options.parent || '#parent';
-      this.value_format = d3.format(".3s");
+      this.value_format = this.options.value_format || d3.format(".3s");
       this.null_value = 0;
       this.vis = d3.select(this.parent).append("div").attr("class", "glview");
       if (this.title) {
