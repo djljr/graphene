@@ -7883,11 +7883,20 @@ function Gauge(placeholderName, configuration)
     };
 
     GraphiteModel.prototype.refresh = function() {
-      var _this = this;
-      return d3.json(this.get('source'), function(js) {
-        console.log("got data.");
-        return _this.process_data(js);
-      });
+      var options, url,
+        _this = this;
+      url = this.get('source');
+      if (-1 === url.indexOf('&jsonp=?')) url = url + '&jsonp=?';
+      options = {
+        url: url,
+        dataType: 'json',
+        jsonp: 'jsonp',
+        success: function(js) {
+          console.log("got data.");
+          return _this.process_data(js);
+        }
+      };
+      return $.ajax(options);
     };
 
     GraphiteModel.prototype.process_data = function() {
