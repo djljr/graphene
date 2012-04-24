@@ -767,7 +767,8 @@ text, tspan {
  *  Gauge Label
  */
 .glview {
-  text-align: center; }
+  text-align: center;
+  height: 9em; }
   .glview .metric .value {
     font-size: 6em; }
   .glview .label {

@@ -181,15 +181,30 @@ class Graphene.AggregateSeries extends Graphene.TimeSeries
     refresh_interval: 10000
 
   refresh: ()=>
-    d3.json @get('source'),
-      (js) =>
+    jsonpify = (url) ->  
+        if -1 == url.indexOf('&jsonp=?')
+            return url + '&jsonp=?'
+        else
+            return url
+
+    options =
+      url: jsonpify(@get('source'))
+      dataType: 'json'
+      jsonp: 'jsonp'
+      success: (js) =>
         console.log('got initial data')
         targets = _.uniq _.map js, (dp)=>
           return @get('params').getTarget(dp.target)
-        d3.json @get('params').getSource(targets), (js2) =>
-          console.log("got final data.")
-          @process_data(js2)
+        final_options =
+            url: jsonpify(@get('params').getSource(targets))
+            dataType: 'json'
+            jsonp: 'jsonp'
+            success: (js2) =>
+              console.log("got final data.")
+              @process_data(js2)
+        $.ajax final_options
 
+    $.ajax options
 
 class Graphene.CountdownSeries extends Backbone.Model
   defaults:

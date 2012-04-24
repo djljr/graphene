@@ -8063,18 +8063,38 @@ function Gauge(placeholderName, configuration)
     };
 
     AggregateSeries.prototype.refresh = function() {
-      var _this = this;
-      return d3.json(this.get('source'), function(js) {
-        var targets;
-        console.log('got initial data');
-        targets = _.uniq(_.map(js, function(dp) {
-          return _this.get('params').getTarget(dp.target);
-        }));
-        return d3.json(_this.get('params').getSource(targets), function(js2) {
-          console.log("got final data.");
-          return _this.process_data(js2);
-        });
-      });
+      var jsonpify, options,
+        _this = this;
+      jsonpify = function(url) {
+        if (-1 === url.indexOf('&jsonp=?')) {
+          return url + '&jsonp=?';
+        } else {
+          return url;
+        }
+      };
+      options = {
+        url: jsonpify(this.get('source')),
+        dataType: 'json',
+        jsonp: 'jsonp',
+        success: function(js) {
+          var final_options, targets;
+          console.log('got initial data');
+          targets = _.uniq(_.map(js, function(dp) {
+            return _this.get('params').getTarget(dp.target);
+          }));
+          final_options = {
+            url: jsonpify(_this.get('params').getSource(targets)),
+            dataType: 'json',
+            jsonp: 'jsonp',
+            success: function(js2) {
+              console.log("got final data.");
+              return _this.process_data(js2);
+            }
+          };
+          return $.ajax(final_options);
+        }
+      };
+      return $.ajax(options);
     };
 
     return AggregateSeries;
